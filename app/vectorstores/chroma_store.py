@@ -4,9 +4,8 @@ def get_collection(name="rag_demo"):
     client = chromadb.Client()
     return client.get_or_create_collection(name=name)
 
-def index_chunks(collection, chunks, embeddings):
+def index_chunks(collection, chunks, embeddings, metadatas):
     ids = [f"chunk-{i}" for i in range(len(chunks))]
-    metadatas = [{"chunk_index": i} for i in range(len(chunks))]
 
     collection.add(
         ids=ids,

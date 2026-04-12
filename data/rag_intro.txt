@@ -1,0 +1,3 @@
+RAG stands for Retrieval-Augmented Generation.
+It retrieves relevant information from source documents before generating an answer.
+This improves grounding and reduces hallucinations.
