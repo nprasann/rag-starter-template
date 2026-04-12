@@ -10,6 +10,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - retrieval
 - answer generation
 - markdown output
+- Retrieval includes source attribution for transparency
 
 ## Project Structure
 - `main.py` - runs the full RAG flow
@@ -18,7 +19,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - `app/embeddings/openai_embedder.py` - creates embeddings
 - `app/vectorstores/chroma_store.py` - stores and searches chunks
 - `app/retrieval/qa.py` - generates grounded answers
-- `data/sample.txt` - sample source document
+- `data/` - folder containing multiple text documents
 - `outputs/result.md` - generated output after running
 
 ## Setup
@@ -38,3 +39,8 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - add configurable chunk sizes
 - add evaluation harness
 - add MCP server integration
+## 🆕 Enhancements
+
+- Supports multiple documents from the `data/` folder
+- Adds metadata (source file name) to each chunk
+- Displays source of retrieved chunks during query
