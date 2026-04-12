@@ -1,0 +1,4 @@
+RAG stands for Retrieval-Augmented Generation.
+It retrieves relevant information from source documents before generating an answer.
+This helps ground the response in source material and reduce hallucinations.
+A basic RAG pipeline usually includes document loading, chunking, embeddings, vector storage, retrieval, and answer generation.
