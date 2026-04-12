@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 
-from app.loaders.text_loader import load_text_files_from_folder
+from app.loaders.text_loader import load_documents_from_folder
 from app.chunkers.simple_chunker import chunk_text
 from app.embeddings.openai_embedder import embed_texts
 from app.vectorstores.chroma_store import get_collection, index_chunks, search
@@ -14,9 +14,11 @@ def main():
     load_dotenv()
 
     # -----------------------------
-    # STEP 1: Load documents
+    # STEP 1: Load supported documents (.txt and .pdf)
     # -----------------------------
-    documents = load_text_files_from_folder("data")
+    
+    # Load all supported documents from the data folder
+    documents = load_documents_from_folder("data")
 
     all_chunks = []
     all_metadatas = []
