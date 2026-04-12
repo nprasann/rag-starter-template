@@ -12,6 +12,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - answer generation
 - source tracking
 - markdown output
+- persistent local vector storage with ChromaDB
 
 ## Supported Input Types
 - `.txt`
@@ -41,6 +42,8 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 ## Notes
 - PDF text extraction works best for text-based PDFs
 - Scanned PDFs may require OCR before they work well in RAG
+- ChromaDB data is stored locally in the `chroma_db/` folder
+- The `chroma_db/` folder is ignored by Git because it is generated locally
 
 ## Next Steps
 - add markdown loader
