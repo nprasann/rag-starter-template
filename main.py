@@ -22,7 +22,10 @@ def main():
     collection = get_collection("rag_demo")
     index_chunks(collection, chunks, chunk_embeddings)
 
-    question = "What does RAG do?"
+    question = input("\nEnter your question: ").strip()
+    if not question:
+        question = "What does RAG do?"
+
     query_embedding = embed_texts([question])[0]
     results = search(collection, query_embedding, top_k=3)
 
