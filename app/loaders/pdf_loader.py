@@ -1,5 +1,5 @@
 from pypdf import PdfReader
-
+import logging
 
 def load_pdf_file(path: str) -> str:
     """
@@ -18,5 +18,5 @@ def load_pdf_file(path: str) -> str:
         return "\n".join(parts)
 
     except Exception as e:
-        print(f"Failed to read PDF: {path}. Error: {e}")
+        logging.error(f"Failed to read PDF: {path}. Error: {e}")
         return ""

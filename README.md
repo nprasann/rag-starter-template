@@ -15,6 +15,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - persistent local vector storage with ChromaDB
 - skips re-indexing when persistent ChromaDB data already exists
 - Markdown loading
+- basic logging for indexing, loading, and error reporting
 
 ## Supported Input Types
 - `.txt`
@@ -36,6 +37,7 @@ This starter template includes basic error handling for:
 - empty `data/` folder
 - unreadable or empty documents
 - PDF extraction failures
+- Uses Python logging for workflow visibility and error messages
 
 ## Project Structure
 - `main.py` - runs the full RAG flow
