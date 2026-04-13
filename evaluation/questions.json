@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What is RAG?",
+    "expected_sources": ["rag_intro.txt", "rag_notes.md"]
+  },
+  {
+    "question": "What are the common steps in a RAG pipeline?",
+    "expected_sources": ["rag_pipeline.txt", "rag_notes.md"]
+  },
+  {
+    "question": "How does RAG reduce hallucinations?",
+    "expected_sources": ["rag_intro.txt", "rag_notes.md"]
+  }
+]
