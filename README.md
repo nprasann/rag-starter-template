@@ -30,6 +30,12 @@ python main.py --rebuild --chunk-size 250 --overlap 40 --top-k 4 What is RAG?
 	•	--overlap → control chunk overlap
 	•	--top-k → number of chunks to retrieve
 
+## Error Handling
+This starter template includes basic error handling for:
+- missing API key
+- empty `data/` folder
+- unreadable or empty documents
+- PDF extraction failures
 
 ## Project Structure
 - `main.py` - runs the full RAG flow
