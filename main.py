@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import sys
 import shutil
+import argparse
 
 from app.loaders.text_loader import load_documents_from_folder
 from app.chunkers.simple_chunker import chunk_text
@@ -13,14 +14,24 @@ from app.retrieval.qa import answer_question
 def main():
     # Load environment variables (.env) so API key is available
     load_dotenv()
+        # -----------------------------
+    # CONFIG: Command-line arguments
+    # -----------------------------
+    parser = argparse.ArgumentParser(description="Run the RAG starter template")
+
+    parser.add_argument("--rebuild", action="store_true", help="Rebuild the local ChromaDB index")
+    parser.add_argument("--chunk-size", type=int, default=200, help="Chunk size for splitting documents")
+    parser.add_argument("--overlap", type=int, default=30, help="Chunk overlap size")
+    parser.add_argument("--top-k", type=int, default=3, help="Number of chunks to retrieve")
+    parser.add_argument("question", nargs="*", help="Optional question to ask")
+
+    args = parser.parse_args()
     # -----------------------------
     # OPTIONAL: Rebuild vector DB
     # -----------------------------
     # If --rebuild is passed, delete the local ChromaDB folder
     # so documents will be re-indexed from scratch.
-    rebuild = "--rebuild" in sys.argv
-
-    if rebuild and Path("chroma_db").exists():
+    if args.rebuild and Path("chroma_db").exists():
         print("\nRebuild flag detected. Deleting existing ChromaDB...")
         shutil.rmtree("chroma_db")
     # -----------------------------
@@ -37,13 +48,17 @@ def main():
     # STEP 2: Chunk documents + attach metadata
     # -----------------------------
     for doc in documents:
-        chunks = chunk_text(doc["content"], chunk_size=200, overlap=30)
+                chunks = chunk_text(
+            doc["content"],
+            chunk_size=args.chunk_size,
+            overlap=args.overlap
+        )
 
-        for chunk in chunks:
-            all_chunks.append(chunk)
+    for chunk in chunks:
+        all_chunks.append(chunk)
 
             # Track which file each chunk came from
-            all_metadatas.append({"source": doc["filename"]})
+        all_metadatas.append({"source": doc["filename"]})
 
     print(f"\nLoaded {len(documents)} document(s)")
     print(f"Created {len(all_chunks)} chunk(s)")
@@ -72,10 +87,8 @@ def main():
     # STEP 5: Get user question
     # -----------------------------
     # Support CLI question input while ignoring special flags
-    cli_args = [arg for arg in sys.argv[1:] if arg != "--rebuild"]
-
-    if cli_args:
-        question = " ".join(cli_args).strip()
+    if args.question:
+        question = " ".join(args.question).strip()
     else:
         question = input("\nEnter your question: ").strip()
 
@@ -90,7 +103,7 @@ def main():
     query_embedding = embed_texts([question])[0]
 
     # Search vector DB for similar chunks
-    results = search(collection, query_embedding, top_k=3)
+    results = search(collection, query_embedding, top_k=args.top_k)
 
     retrieved_chunks = results["documents"][0]
     retrieved_metadatas = results["metadatas"][0]

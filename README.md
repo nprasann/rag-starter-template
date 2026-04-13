@@ -14,10 +14,22 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - markdown output
 - persistent local vector storage with ChromaDB
 - skips re-indexing when persistent ChromaDB data already exists
+- Markdown loading
 
 ## Supported Input Types
 - `.txt`
+- `.md`
 - `.pdf`
+## Command-Line Options
+You can customize the RAG run with command-line flags:
+```bash
+python main.py --rebuild --chunk-size 250 --overlap 40 --top-k 4 What is RAG?
+```
+	•	--rebuild → rebuild the local ChromaDB index
+	•	--chunk-size → control chunk size
+	•	--overlap → control chunk overlap
+	•	--top-k → number of chunks to retrieve
+
 
 ## Project Structure
 - `main.py` - runs the full RAG flow
@@ -36,7 +48,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
    `pip install -r requirements.txt`
 3. Create a `.env` file from `.env.example`
 4. Add your OpenAI API key
-5. Put `.txt` and/or `.pdf` files in the `data/` folder
+5. Put `.txt`, `.md`, and/or `.pdf` files in the `data/` folder
 6. Run:
    `python main.py`
 
