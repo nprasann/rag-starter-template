@@ -28,6 +28,24 @@ logging.basicConfig(
     format="%(levelname)s: %(message)s"
 )
 
+def limit_chunks_per_source(retrieved_chunks, retrieved_metadatas, max_per_source=1):
+    """
+    Limit how many retrieved chunks can come from the same source file.
+    """
+    source_counts = {}
+    filtered_chunks = []
+    filtered_metadatas = []
+
+    for chunk, metadata in zip(retrieved_chunks, retrieved_metadatas):
+        source = metadata["source"]
+        current_count = source_counts.get(source, 0)
+
+        if current_count < max_per_source:
+            filtered_chunks.append(chunk)
+            filtered_metadatas.append(metadata)
+            source_counts[source] = current_count + 1
+
+    return filtered_chunks, filtered_metadatas
 
 def ensure_index_exists():
     """
@@ -97,6 +115,12 @@ def run_evaluation():
 
         retrieved_chunks = retrieved_docs[0] if retrieved_docs else []
         retrieved_metadatas = retrieved_meta[0] if retrieved_meta else []
+
+        retrieved_chunks, retrieved_metadatas = limit_chunks_per_source(
+            retrieved_chunks,
+            retrieved_metadatas,
+            max_per_source=1
+        )
 
         retrieved_sources = []
         for metadata in retrieved_metadatas:

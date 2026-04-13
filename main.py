@@ -5,6 +5,16 @@ import argparse
 import os
 import logging 
 
+from config.settings import (
+    DATA_FOLDER,
+    OUTPUT_FOLDER,
+    CHROMA_DB_PATH,
+    DEFAULT_COLLECTION_NAME,
+    DEFAULT_CHUNK_SIZE,
+    DEFAULT_OVERLAP,
+    DEFAULT_TOP_K,
+    DEFAULT_RESULT_FILE,
+)
 from app.loaders.text_loader import load_documents_from_folder
 from app.chunkers.simple_chunker import chunk_text
 from app.embeddings.openai_embedder import embed_texts
@@ -15,6 +25,32 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(levelname)s: %(message)s"
 )
+def limit_chunks_per_source(retrieved_chunks, retrieved_metadatas, max_per_source=1):
+    """
+    Limit how many retrieved chunks can come from the same source file.
+
+    Args:
+        retrieved_chunks: list of retrieved text chunks
+        retrieved_metadatas: list of metadata dicts for the chunks
+        max_per_source: maximum number of chunks allowed per source file
+
+    Returns:
+        filtered_chunks, filtered_metadatas
+    """
+    source_counts = {}
+    filtered_chunks = []
+    filtered_metadatas = []
+
+    for chunk, metadata in zip(retrieved_chunks, retrieved_metadatas):
+        source = metadata["source"]
+        current_count = source_counts.get(source, 0)
+
+        if current_count < max_per_source:
+            filtered_chunks.append(chunk)
+            filtered_metadatas.append(metadata)
+            source_counts[source] = current_count + 1
+
+    return filtered_chunks, filtered_metadatas
 
 def main():
     # Load environment variables (.env) so API key is available
@@ -29,27 +65,33 @@ def main():
     # CONFIG: Command-line arguments
     # -----------------------------
     parser = argparse.ArgumentParser(description="Run the RAG starter template")
+    parser.add_argument(
+        "--max-per-source",
+        type=int,
+        default=1,
+        help="Maximum number of retrieved chunks allowed from the same source file"
+    )
     parser.add_argument("--rebuild", action="store_true", help="Rebuild the local ChromaDB index")
-    parser.add_argument("--chunk-size", type=int, default=200, help="Chunk size for splitting documents")
-    parser.add_argument("--overlap", type=int, default=30, help="Chunk overlap size")
-    parser.add_argument("--top-k", type=int, default=3, help="Number of chunks to retrieve")
+    parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_SIZE, help="Chunk size for splitting documents")
+    parser.add_argument("--overlap", type=int, default=DEFAULT_OVERLAP, help="Chunk overlap size")
+    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help="Number of chunks to retrieve")
     parser.add_argument("question", nargs="*", help="Optional question to ask")
     parser.add_argument("--source", type=str, help="Optional source file to filter retrieval by")
-    parser.add_argument("--collection-name", type=str, default="rag_demo", help="Name of the ChromaDB collection to use")
+    parser.add_argument("--collection-name", type=str, default=DEFAULT_COLLECTION_NAME, help="Name of the ChromaDB collection to use")
     args = parser.parse_args()
 
     try:
         # -----------------------------
         # OPTIONAL: Rebuild vector DB
         # -----------------------------
-        if args.rebuild and Path("chroma_db").exists():
+        if args.rebuild and Path(CHROMA_DB_PATH).exists():
             logging.info("Rebuild flag detected. Deleting existing ChromaDB...")
-            shutil.rmtree("chroma_db")
+            shutil.rmtree(CHROMA_DB_PATH)
 
         # -----------------------------
         # STEP 1: Load supported documents
         # -----------------------------
-        documents = load_documents_from_folder("data")
+        documents = load_documents_from_folder(DATA_FOLDER)
 
         if not documents:
             logging.warning("No supported documents found in the data/ folder.")
@@ -87,7 +129,7 @@ def main():
         # STEP 3: Open vector DB
         # -----------------------------
         logging.info(f"Using collection: {args.collection_name}")
-        collection = get_collection(args.collection_name)
+        collection = get_collection(args.collection_name, persist_directory=CHROMA_DB_PATH)
 
         # Check whether the collection already has indexed data
         existing_count = collection.count()
@@ -134,6 +176,16 @@ def main():
         retrieved_chunks = retrieved_docs[0] if retrieved_docs else []
         retrieved_metadatas = retrieved_meta[0] if retrieved_meta else []
 
+        # Limit repeated chunks from the same source file
+        retrieved_chunks, retrieved_metadatas = limit_chunks_per_source(
+            retrieved_chunks,
+            retrieved_metadatas,
+            max_per_source=args.max_per_source
+        )
+        logging.info(
+            f"Applied duplicate control with max_per_source={args.max_per_source}"
+        )
+
         # Handle no results
         if not retrieved_chunks:
             logging.warning("No matching chunks found for the question.")
@@ -148,7 +200,7 @@ def main():
             print("I could not find relevant information in the indexed documents.")
 
             Path("outputs").mkdir(exist_ok=True)
-            Path("outputs/result.md").write_text(
+            DEFAULT_RESULT_FILE.write_text(
                 "# RAG Result\n\n"
                 f"## Question\n{question}\n\n"
                 "## Answer\n"
@@ -182,8 +234,8 @@ def main():
             print("\nAnswer:")
             print("I could not find relevant information in the indexed documents.")
 
-            Path("outputs").mkdir(exist_ok=True)
-            Path("outputs/result.md").write_text(
+            Path(OUTPUT_FOLDER).mkdir(exist_ok=True)
+            DEFAULT_RESULT_FILE.write_text(
                 "# RAG Result\n\n"
                 f"## Question\n{question}\n\n"
                 "## Answer\n"
@@ -212,7 +264,7 @@ def main():
         # -----------------------------
         # STEP 7: Save results to file
         # -----------------------------
-        Path("outputs").mkdir(exist_ok=True)
+        Path(OUTPUT_FOLDER).mkdir(exist_ok=True)
 
         lines = []
         lines.append("# RAG Result\n")

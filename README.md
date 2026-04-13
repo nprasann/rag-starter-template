@@ -21,6 +21,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - graceful handling when no relevant chunks are found
 - centralized configuration file for default RAG settings
 - basic evaluation harness for testing retrieval and answer behavior
+- duplicate control to limit repeated chunks from the same source file
 
 ## Supported Input Types
 - `.txt`
@@ -37,9 +38,11 @@ python main.py --rebuild --chunk-size 250 --overlap 40 --top-k 4 What is RAG?
 	  --overlap → control chunk overlap
      --top-k → number of chunks to retrieve
      --source → restrict retrieval to a specific file in the data/ folder
-    `--collection-name` → choose which ChromaDB collection to use
+     --collection-name → choose which ChromaDB collection to use
+     --max-per-source → limit how many retrieved chunks can come from the same file
    ```bash
       python main.py --collection-name policy_docs --rebuild What is RAG?
+      python main.py --max-per-source 2 What are the common steps in a RAG pipeline?
    ```
 	
 
