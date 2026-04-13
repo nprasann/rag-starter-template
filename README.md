@@ -48,6 +48,15 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - On first run, documents are indexed into ChromaDB
 - On later runs, the app reuses the existing local vector store
 - If you change files in `data/`, delete `chroma_db/` and run again to rebuild the index
+### Rebuilding the Index
+If you change files in the `data/` folder and want to rebuild the vector index, run:
+```bash
+python main.py --rebuild
+```
+You can also rebuild and ask a question in one command:
+```bash
+python main.py --rebuild What is chunking?
+```
 
 ## Next Steps
 - add markdown loader

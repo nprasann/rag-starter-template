@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 import sys
+import shutil
 
 from app.loaders.text_loader import load_documents_from_folder
 from app.chunkers.simple_chunker import chunk_text
@@ -12,7 +13,16 @@ from app.retrieval.qa import answer_question
 def main():
     # Load environment variables (.env) so API key is available
     load_dotenv()
+    # -----------------------------
+    # OPTIONAL: Rebuild vector DB
+    # -----------------------------
+    # If --rebuild is passed, delete the local ChromaDB folder
+    # so documents will be re-indexed from scratch.
+    rebuild = "--rebuild" in sys.argv
 
+    if rebuild and Path("chroma_db").exists():
+        print("\nRebuild flag detected. Deleting existing ChromaDB...")
+        shutil.rmtree("chroma_db")
     # -----------------------------
     # STEP 1: Load supported documents (.txt and .pdf)
     # -----------------------------
@@ -61,9 +71,11 @@ def main():
     # -----------------------------
     # STEP 5: Get user question
     # -----------------------------
-    # Support CLI input OR interactive input
-    if len(sys.argv) > 1:
-        question = " ".join(sys.argv[1:]).strip()
+    # Support CLI question input while ignoring special flags
+    cli_args = [arg for arg in sys.argv[1:] if arg != "--rebuild"]
+
+    if cli_args:
+        question = " ".join(cli_args).strip()
     else:
         question = input("\nEnter your question: ").strip()
 
