@@ -19,6 +19,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - optional retrieval filtering by source filename
 - supports custom ChromaDB collection names
 - graceful handling when no relevant chunks are found
+- centralized configuration file for default RAG settings
 
 ## Supported Input Types
 - `.txt`
@@ -61,6 +62,7 @@ This starter template includes basic error handling for:
 - `app/retrieval/qa.py` - generates grounded answers
 - `data/` - folder containing source documents
 - `outputs/result.md` - generated output after running
+- `config/settings.py` - central location for default folders and RAG settings
 
 ## Setup
 1. Create and activate a virtual environment
@@ -80,6 +82,8 @@ This starter template includes basic error handling for:
 - On first run, documents are indexed into ChromaDB
 - On later runs, the app reuses the existing local vector store
 - If you change files in `data/`, delete `chroma_db/` and run again to rebuild the index
+- Default settings such as chunk size, overlap, top-k, and folder paths are stored in `config/settings.py`
+- Command-line arguments override config defaults at runtime
 ### Rebuilding the Index
 If you change files in the `data/` folder and want to rebuild the vector index, run:
 ```bash
