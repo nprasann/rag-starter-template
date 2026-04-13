@@ -16,7 +16,7 @@ def main():
     # -----------------------------
     # STEP 1: Load supported documents (.txt and .pdf)
     # -----------------------------
-    
+
     # Load all supported documents from the data folder
     documents = load_documents_from_folder("data")
 
@@ -38,20 +38,26 @@ def main():
     print(f"\nLoaded {len(documents)} document(s)")
     print(f"Created {len(all_chunks)} chunk(s)")
 
-    # -----------------------------
-    # STEP 3: Create embeddings
-    # -----------------------------
-    # Convert text chunks into vectors using OpenAI embeddings
-    chunk_embeddings = embed_texts(all_chunks)
-
-    # -----------------------------
-    # STEP 4: Store in vector DB
+        # -----------------------------
+    # STEP 3: Open vector DB
     # -----------------------------
     collection = get_collection("rag_demo")
 
-    # Store chunks + embeddings + metadata in ChromaDB
-    index_chunks(collection, all_chunks, chunk_embeddings, all_metadatas)
+    # Check whether the collection already has indexed data
+    existing_count = collection.count()
 
+    if existing_count == 0:
+        print("\nNo existing vectors found. Indexing documents now...")
+
+        # Convert text chunks into vectors using OpenAI embeddings
+        chunk_embeddings = embed_texts(all_chunks)
+
+        # Store chunks + embeddings + metadata in ChromaDB
+        index_chunks(collection, all_chunks, chunk_embeddings, all_metadatas)
+
+        print(f"Indexed {len(all_chunks)} chunk(s) into ChromaDB.")
+    else:
+        print(f"\nUsing existing ChromaDB collection with {existing_count} chunk(s).")
     # -----------------------------
     # STEP 5: Get user question
     # -----------------------------
