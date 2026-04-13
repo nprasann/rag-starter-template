@@ -20,6 +20,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - supports custom ChromaDB collection names
 - graceful handling when no relevant chunks are found
 - centralized configuration file for default RAG settings
+- basic evaluation harness for testing retrieval and answer behavior
 
 ## Supported Input Types
 - `.txt`
@@ -63,6 +64,8 @@ This starter template includes basic error handling for:
 - `data/` - folder containing source documents
 - `outputs/result.md` - generated output after running
 - `config/settings.py` - central location for default folders and RAG settings
+- `evaluation/questions.json` - sample evaluation questions and expected sources
+- `evaluation/run_eval.py` - runs evaluation against the current RAG pipeline
 
 ## Setup
 1. Create and activate a virtual environment
@@ -93,6 +96,22 @@ You can also rebuild and ask a question in one command:
 ```bash
 python main.py --rebuild What is chunking?
 ```
+## Evaluation Harness
+
+Run the evaluation script:
+
+```bash
+python evaluation/run_eval.py
+```
+This generates:
+```bash
+outputs/evaluation_results.md
+```
+The evaluation output includes:
+	•	question
+	•	expected sources
+	•	retrieved sources
+	•	generated answer
 
 ## Next Steps
 - add markdown loader
