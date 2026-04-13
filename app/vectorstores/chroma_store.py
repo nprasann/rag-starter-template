@@ -42,15 +42,30 @@ def index_chunks(collection, chunks, embeddings, metadatas):
     )
 
 
-def search(collection, query_embedding, top_k=3):
+def search(collection, query_embedding, top_k=3, source_filter=None):
     """
-    Perform similarity search using the query embedding.
+    Search the collection using the query embedding.
+
+    If source_filter is provided, only chunks from that source file
+    will be considered.
+
+    Args:
+        collection: ChromaDB collection
+        query_embedding: vector for the user's question
+        top_k: number of results to return
+        source_filter: optional filename to filter by
 
     Returns:
-        The top_k most relevant chunks based on semantic similarity.
+        Chroma query results
     """
+    if source_filter:
+        return collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k,
+            where={"source": source_filter}
+        )
 
     return collection.query(
-        query_embeddings=[query_embedding],  # vector of user question
-        n_results=top_k                      # number of results to return
+        query_embeddings=[query_embedding],
+        n_results=top_k
     )

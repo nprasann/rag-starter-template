@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 import argparse
 import os
+import logging 
 
 from app.loaders.text_loader import load_documents_from_folder
 from app.chunkers.simple_chunker import chunk_text
@@ -10,14 +11,18 @@ from app.embeddings.openai_embedder import embed_texts
 from app.vectorstores.chroma_store import get_collection, index_chunks, search
 from app.retrieval.qa import answer_question
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s: %(message)s"
+)
 
 def main():
     # Load environment variables (.env) so API key is available
     load_dotenv()
 
     if not os.getenv("OPENAI_API_KEY"):
-        print("\nMissing OPENAI_API_KEY.")
-        print("Create a .env file with your OpenAI API key and try again.")
+        logging.error("Missing OPENAI_API_KEY.")
+        logging.info("Create a .env file with your OpenAI API key and try again.")
         return
 
     # -----------------------------
@@ -29,7 +34,8 @@ def main():
     parser.add_argument("--overlap", type=int, default=30, help="Chunk overlap size")
     parser.add_argument("--top-k", type=int, default=3, help="Number of chunks to retrieve")
     parser.add_argument("question", nargs="*", help="Optional question to ask")
-
+    parser.add_argument("--source", type=str, help="Optional source file to filter retrieval by")
+    
     args = parser.parse_args()
 
     try:
@@ -37,7 +43,7 @@ def main():
         # OPTIONAL: Rebuild vector DB
         # -----------------------------
         if args.rebuild and Path("chroma_db").exists():
-            print("\nRebuild flag detected. Deleting existing ChromaDB...")
+            logging.info("Rebuild flag detected. Deleting existing ChromaDB...")
             shutil.rmtree("chroma_db")
 
         # -----------------------------
@@ -46,8 +52,8 @@ def main():
         documents = load_documents_from_folder("data")
 
         if not documents:
-            print("\nNo supported documents found in the data/ folder.")
-            print("Add at least one .txt, .md, or .pdf file and try again.")
+            logging.warning("No supported documents found in the data/ folder.")
+            logging.info("Add at least one .txt, .md, or .pdf file and try again.")
             return
 
         all_chunks = []
@@ -70,12 +76,12 @@ def main():
                 all_metadatas.append({"source": doc["filename"]})
 
         if not all_chunks:
-            print("\nDocuments were loaded, but no chunks were created.")
-            print("Check whether the files contain readable text.")
+            logging.warning("Documents were loaded, but no chunks were created.")
+            logging.info("Check whether the files contain readable text.")
             return
 
-        print(f"\nLoaded {len(documents)} document(s)")
-        print(f"Created {len(all_chunks)} chunk(s)")
+        logging.info(f"Loaded {len(documents)} document(s)")
+        logging.info(f"Created {len(all_chunks)} chunk(s)")
 
         # -----------------------------
         # STEP 3: Open vector DB
@@ -86,17 +92,16 @@ def main():
         existing_count = collection.count()
 
         if existing_count == 0:
-            print("\nNo existing vectors found. Indexing documents now...")
+            logging.info("No existing vectors found. Indexing documents now...")
 
             # Convert text chunks into vectors using OpenAI embeddings
             chunk_embeddings = embed_texts(all_chunks)
 
             # Store chunks + embeddings + metadata in ChromaDB
             index_chunks(collection, all_chunks, chunk_embeddings, all_metadatas)
-
-            print(f"Indexed {len(all_chunks)} chunk(s) into ChromaDB.")
+            logging.info(f"Indexed {len(all_chunks)} chunk(s) into ChromaDB.")
         else:
-            print(f"\nUsing existing ChromaDB collection with {existing_count} chunk(s).")
+            logging.info(f"Using existing ChromaDB collection with {existing_count} chunk(s).")
 
         # -----------------------------
         # STEP 4: Get user question
@@ -113,10 +118,20 @@ def main():
         # STEP 5: Retrieve relevant chunks
         # -----------------------------
         query_embedding = embed_texts([question])[0]
-        results = search(collection, query_embedding, top_k=args.top_k)
+        if args.source:
+            logging.info(f"Applying source filter: {args.source}")
+        results = search(
+            collection,
+            query_embedding,
+            top_k=args.top_k,
+            source_filter=args.source
+        )
 
         retrieved_chunks = results["documents"][0]
         retrieved_metadatas = results["metadatas"][0]
+        if not retrieved_chunks:
+            logging.warning("No matching chunks found for the question.")
+            return
 
         print("\nRetrieved chunks:")
         for i, (chunk, metadata) in enumerate(zip(retrieved_chunks, retrieved_metadatas), start=1):
@@ -165,7 +180,7 @@ def main():
         print("\nSaved output to outputs/result.md")
 
     except Exception as e:
-        print(f"\nAn error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
