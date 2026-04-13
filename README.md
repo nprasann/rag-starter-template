@@ -18,6 +18,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - basic logging for indexing, loading, and error reporting
 - optional retrieval filtering by source filename
 - supports custom ChromaDB collection names
+- graceful handling when no relevant chunks are found
 
 ## Supported Input Types
 - `.txt`
@@ -47,6 +48,8 @@ This starter template includes basic error handling for:
 - unreadable or empty documents
 - PDF extraction failures
 - Uses Python logging for workflow visibility and error messages
+- If retrieval finds no relevant chunks, the app returns a friendly response and still writes `outputs/result.md`
+- If `--source` is used and no results are found, the app logs that the source filter may be too restrictive
 
 ## Project Structure
 - `main.py` - runs the full RAG flow

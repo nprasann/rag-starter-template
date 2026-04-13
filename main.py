@@ -119,8 +119,7 @@ def main():
         # STEP 5: Retrieve relevant chunks
         # -----------------------------
         query_embedding = embed_texts([question])[0]
-        if args.source:
-            logging.info(f"Applying source filter: {args.source}")
+
         results = search(
             collection,
             query_embedding,
@@ -128,10 +127,71 @@ def main():
             source_filter=args.source
         )
 
-        retrieved_chunks = results["documents"][0]
-        retrieved_metadatas = results["metadatas"][0]
+        # Safely extract results
+        retrieved_docs = results.get("documents", [])
+        retrieved_meta = results.get("metadatas", [])
+
+        retrieved_chunks = retrieved_docs[0] if retrieved_docs else []
+        retrieved_metadatas = retrieved_meta[0] if retrieved_meta else []
+
+        # Handle no results
         if not retrieved_chunks:
             logging.warning("No matching chunks found for the question.")
+
+            if args.source:
+                logging.info(f"No results were found with source filter: {args.source}")
+
+            print("\nQuestion:")
+            print(question)
+
+            print("\nAnswer:")
+            print("I could not find relevant information in the indexed documents.")
+
+            Path("outputs").mkdir(exist_ok=True)
+            Path("outputs/result.md").write_text(
+                "# RAG Result\n\n"
+                f"## Question\n{question}\n\n"
+                "## Answer\n"
+                "I could not find relevant information in the indexed documents.\n",
+                encoding="utf-8"
+            )
+
+            print("\nSaved output to outputs/result.md")
+            return
+        
+        results = search(
+            collection,
+            query_embedding,
+            top_k=args.top_k,
+            source_filter=args.source
+        )
+
+        retrieved_docs = results.get("documents", [])
+        retrieved_meta = results.get("metadatas", [])
+
+        retrieved_chunks = retrieved_docs[0] if retrieved_docs else []
+        retrieved_metadatas = retrieved_meta[0] if retrieved_meta else []
+
+        # Handle cases where retrieval finds no useful chunks
+        if not retrieved_chunks:
+            logging.warning("No matching chunks found for the question.")
+
+            print("\nQuestion:")
+            print(question)
+
+            print("\nAnswer:")
+            print("I could not find relevant information in the indexed documents.")
+
+            Path("outputs").mkdir(exist_ok=True)
+            Path("outputs/result.md").write_text(
+                "# RAG Result\n\n"
+                f"## Question\n{question}\n\n"
+                "## Answer\n"
+                "I could not find relevant information in the indexed documents.\n",
+                encoding="utf-8"
+            )
+
+            print("\nSaved output to outputs/result.md")
             return
 
         print("\nRetrieved chunks:")
