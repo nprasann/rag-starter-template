@@ -17,6 +17,7 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 - Markdown loading
 - basic logging for indexing, loading, and error reporting
 - optional retrieval filtering by source filename
+- supports custom ChromaDB collection names
 
 ## Supported Input Types
 - `.txt`
@@ -26,14 +27,17 @@ A minimal starter template for Retrieval-Augmented Generation (RAG) using Python
 You can customize the RAG run with command-line flags:
 ```bash
 python main.py --rebuild --chunk-size 250 --overlap 40 --top-k 4 What is RAG?
-
-	-  --rebuild → rebuild the local ChromaDB index
-	-  --chunk-size → control chunk size
-	-  --overlap → control chunk overlap
-   -  --top-k → number of chunks to retrieve
-   -  --source → restrict retrieval to a specific file in the data/ folder
-   
 ```
+	
+     --rebuild → rebuild the local ChromaDB index
+	  --chunk-size → control chunk size
+	  --overlap → control chunk overlap
+     --top-k → number of chunks to retrieve
+     --source → restrict retrieval to a specific file in the data/ folder
+    `--collection-name` → choose which ChromaDB collection to use
+   ```bash
+      python main.py --collection-name policy_docs --rebuild What is RAG?
+   ```
 	
 
 ## Error Handling

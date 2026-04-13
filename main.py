@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--top-k", type=int, default=3, help="Number of chunks to retrieve")
     parser.add_argument("question", nargs="*", help="Optional question to ask")
     parser.add_argument("--source", type=str, help="Optional source file to filter retrieval by")
-    
+    parser.add_argument("--collection-name", type=str, default="rag_demo", help="Name of the ChromaDB collection to use")
     args = parser.parse_args()
 
     try:
@@ -86,7 +86,8 @@ def main():
         # -----------------------------
         # STEP 3: Open vector DB
         # -----------------------------
-        collection = get_collection("rag_demo")
+        logging.info(f"Using collection: {args.collection_name}")
+        collection = get_collection(args.collection_name)
 
         # Check whether the collection already has indexed data
         existing_count = collection.count()
