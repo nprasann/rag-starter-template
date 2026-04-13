@@ -111,10 +111,14 @@ This generates:
 outputs/evaluation_results.md
 ```
 The evaluation output includes:
-	•	question
-	•	expected sources
-	•	retrieved sources
-	•	generated answer
+	- question
+	- expected sources
+	- retrieved sources
+	- generated answer
+The evaluation output also includes:
+- PASS / FAIL / CHECK status
+- matched expected sources
+- summary counts
 
 ## Next Steps
 - add markdown loader

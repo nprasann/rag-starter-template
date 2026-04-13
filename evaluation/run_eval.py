@@ -102,7 +102,9 @@ def run_evaluation():
 
     lines = []
     lines.append("# Evaluation Results\n")
-
+    pass_count = 0
+    fail_count = 0
+    check_count = 0
     for i, item in enumerate(questions, start=1):
         question = item["question"]
         expected_sources = item.get("expected_sources", [])
@@ -133,12 +135,31 @@ def run_evaluation():
         else:
             answer = "I could not find relevant information in the indexed documents."
 
+        # Simple PASS/FAIL logic:
+        # PASS if at least one expected source appears in retrieved sources.
+        if expected_sources:
+            matched_sources = [src for src in expected_sources if src in retrieved_sources]
+            status = "PASS" if matched_sources else "FAIL"
+        else:
+            matched_sources = []
+            status = "PASS" if not retrieved_sources else "CHECK"
+        if status == "PASS":
+            pass_count += 1
+        elif status == "FAIL":
+            fail_count += 1
+        else:
+            check_count += 1
         lines.append(f"## Test {i}")
+        lines.append(f"**Status:** {status}")
         lines.append(f"**Question:** {question}")
         lines.append(f"**Expected Sources:** {', '.join(expected_sources) if expected_sources else 'None'}")
         lines.append(f"**Retrieved Sources:** {', '.join(retrieved_sources) if retrieved_sources else 'None'}")
+        lines.append(f"**Matched Sources:** {', '.join(matched_sources) if matched_sources else 'None'}")
         lines.append(f"**Answer:** {answer}\n")
-
+        lines.append("## Summary")
+    lines.append(f"- PASS: {pass_count}")
+    lines.append(f"- FAIL: {fail_count}")
+    lines.append(f"- CHECK: {check_count}")
     Path(OUTPUT_FOLDER).mkdir(exist_ok=True)
     output_path = Path(OUTPUT_FOLDER) / "evaluation_results.md"
     output_path.write_text("\n\n".join(lines), encoding="utf-8")
